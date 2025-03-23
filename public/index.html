@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>TradeGlam</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .header img {
+      width: 100px;
+      margin-bottom: 10px;
+    }
+    .header h1 {
+      font-size: 2em;
+      margin: 0;
+      font-weight: bold;
+    }
+    .tweets-container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .tweet {
+      background-color: #1a1a1a;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
+    }
+    .tweet p {
+      margin: 0 0 10px;
+      line-height: 1.4;
+    }
+    .tweet img {
+      max-width: 100%;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    .tweet small {
+      color: #aaa;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="logo.png" alt="TradeGlam Logo">
+    <h1>TradeGlam</h1>
+  </div>
+  <div class="tweets-container" id="tweets-container"></div>
+
+  <script>
+    function fetchTweets() {
+      fetch('/tweets')
+        .then(response => response.json())
+        .then(data => {
+          if (data.error) throw new Error(data.error);
+          const container = document.getElementById('tweets-container');
+          container.innerHTML = '';
+          const tweets = data.data || [];
+          const media = data.includes?.media || [];
+
+          tweets.forEach(tweet => {
+            const tweetDiv = document.createElement('div');
+            tweetDiv.className = 'tweet';
+            
+            const text = document.createElement('p');
+            text.textContent = tweet.text;
+            tweetDiv.appendChild(text);
+
+            if (tweet.attachments?.media_keys) {
+              const mediaKey = tweet.attachments.media_keys[0];
+              const mediaObj = media.find(m => m.media_key === mediaKey);
+              if (mediaObj?.url) {
+                const img = document.createElement('img');
+                img.src = mediaObj.url;
+                tweetDiv.appendChild(img);
+              }
+            }
+
+            const date = document.createElement('small');
+            date.textContent = new Date(tweet.created_at).toLocaleString('tr-TR');
+            tweetDiv.appendChild(date);
+
+            container.appendChild(tweetDiv);
+          });
+        })
+        .catch(error => {
+          console.error('Hata:', error);
+          document.getElementById('tweets-container').innerHTML = '<p>Tweetler yüklenemedi.</p>';
+        });
+    }
+
+    fetchTweets();
+    setInterval(fetchTweets, 30000);
+  </script>
+</body>
+</html>
